@@ -2,14 +2,26 @@ import { requireRole } from "@/lib/auth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { getAdminDashboardStats } from "@/lib/data/schools";
 import { getAdminGradeStats } from "@/lib/data/grades";
+import { getAdminTeachingModuleStats } from "@/lib/data/teaching-modules";
+import { getAdminLessonPlanStats } from "@/lib/data/lesson-plans";
+import { getAdminWorksheetStats } from "@/lib/data/worksheets";
 import { StatCard, PageHeader } from "@/components/ui/Cards";
 import Link from "next/link";
 
 export default async function AdminDashboardPage() {
   const user = await requireRole("ADMIN");
-  const [stats, gradeStats] = await Promise.all([
+  const [
+    stats,
+    gradeStats,
+    moduleStats,
+    planStats,
+    worksheetStats,
+  ] = await Promise.all([
     getAdminDashboardStats(user.schoolId),
     getAdminGradeStats(user.schoolId),
+    getAdminTeachingModuleStats(user.schoolId),
+    getAdminLessonPlanStats(user.schoolId),
+    getAdminWorksheetStats(user.schoolId),
   ]);
 
   return (
@@ -21,30 +33,48 @@ export default async function AdminDashboardPage() {
 
       <div className="space-y-8">
         {/* Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
           <StatCard
             title="Total Guru"
             value={stats.totalTeachers}
             icon="👨‍🏫"
-            description="Tenaga pengajar terdaftar"
+            description="Tenaga pengajar"
           />
           <StatCard
             title="Total Siswa"
             value={stats.totalStudents}
             icon="🎒"
-            description="Siswa aktif di sekolah"
+            description="Siswa aktif"
           />
           <StatCard
             title="Total Kelas"
             value={stats.totalClassrooms}
             icon="🚪"
-            description="Rombongan belajar"
+            description="Rombel"
           />
           <StatCard
-            title="Asesmen Sekolah"
+            title="Modul Ajar"
+            value={moduleStats.totalModules}
+            icon="📚"
+            description={`${moduleStats.publishedCount} terbit • ${moduleStats.draftCount} draft`}
+          />
+          <StatCard
+            title="RPP"
+            value={planStats.totalPlans}
+            icon="📑"
+            description={`${planStats.publishedCount} terbit • ${planStats.draftCount} draft`}
+          />
+          <StatCard
+            title="LKPD Siswa"
+            value={worksheetStats.totalWorksheets}
+            icon="📋"
+            description={`${worksheetStats.publishedCount} terbit • ${worksheetStats.draftCount} draft`}
+          />
+          <StatCard
+            title="Asesmen"
             value={gradeStats.totalAssessments}
             icon="📈"
-            description={`${gradeStats.totalGradesRecorded} nilai tersimpan`}
+            description={`${gradeStats.totalGradesRecorded} nilai`}
           />
         </div>
 
@@ -78,34 +108,48 @@ export default async function AdminDashboardPage() {
             <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-500">
               Aksi Cepat Menu Utama
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
               <Link
                 href="/admin/guru"
                 className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 hover:bg-blue-50/30 dark:hover:bg-blue-950/30 transition text-center space-y-1.5"
               >
                 <span className="text-2xl">👨‍🏫</span>
-                <p className="text-xs font-semibold">Kelola Guru</p>
+                <p className="text-xs font-semibold">Guru</p>
               </Link>
               <Link
                 href="/admin/siswa"
                 className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 hover:bg-blue-50/30 dark:hover:bg-blue-950/30 transition text-center space-y-1.5"
               >
                 <span className="text-2xl">🎒</span>
-                <p className="text-xs font-semibold">Kelola Siswa</p>
+                <p className="text-xs font-semibold">Siswa</p>
+              </Link>
+              <Link
+                href="/admin/modul-ajar"
+                className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 hover:bg-blue-50/30 dark:hover:bg-blue-950/30 transition text-center space-y-1.5"
+              >
+                <span className="text-2xl">📚</span>
+                <p className="text-xs font-semibold">Modul Ajar</p>
+              </Link>
+              <Link
+                href="/admin/rpp"
+                className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 hover:bg-blue-50/30 dark:hover:bg-blue-950/30 transition text-center space-y-1.5"
+              >
+                <span className="text-2xl">📑</span>
+                <p className="text-xs font-semibold">RPP</p>
+              </Link>
+              <Link
+                href="/admin/lkpd"
+                className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 hover:bg-blue-50/30 dark:hover:bg-blue-950/30 transition text-center space-y-1.5"
+              >
+                <span className="text-2xl">📋</span>
+                <p className="text-xs font-semibold">LKPD</p>
               </Link>
               <Link
                 href="/admin/absensi"
                 className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 hover:bg-blue-50/30 dark:hover:bg-blue-950/30 transition text-center space-y-1.5"
               >
                 <span className="text-2xl">📝</span>
-                <p className="text-xs font-semibold">Rekap Presensi</p>
-              </Link>
-              <Link
-                href="/admin/nilai"
-                className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-blue-500 hover:bg-blue-50/30 dark:hover:bg-blue-950/30 transition text-center space-y-1.5"
-              >
-                <span className="text-2xl">📈</span>
-                <p className="text-xs font-semibold">Rekap Nilai</p>
+                <p className="text-xs font-semibold">Presensi</p>
               </Link>
             </div>
           </div>

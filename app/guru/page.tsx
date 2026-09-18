@@ -3,6 +3,9 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { getGuruDashboardData } from "@/lib/data/guru";
 import { getTeacherAttendanceSchedules, getTodayDateJakarta } from "@/lib/data/attendance";
 import { getTeacherGradeStats } from "@/lib/data/grades";
+import { getTeacherTeachingModuleStats } from "@/lib/data/teaching-modules";
+import { getTeacherLessonPlanStats } from "@/lib/data/lesson-plans";
+import { getTeacherWorksheetStats } from "@/lib/data/worksheets";
 import { StatCard, PageHeader } from "@/components/ui/Cards";
 import Link from "next/link";
 
@@ -10,10 +13,20 @@ export default async function GuruDashboardPage() {
   const user = await requireRole("GURU");
   const todayDate = getTodayDateJakarta();
 
-  const [data, todayAttendanceSchedules, gradeStats] = await Promise.all([
+  const [
+    data,
+    todayAttendanceSchedules,
+    gradeStats,
+    moduleStats,
+    planStats,
+    worksheetStats,
+  ] = await Promise.all([
     getGuruDashboardData(user.id),
     getTeacherAttendanceSchedules(user.id, todayDate),
     getTeacherGradeStats(user.id),
+    getTeacherTeachingModuleStats(user.id),
+    getTeacherLessonPlanStats(user.id),
+    getTeacherWorksheetStats(user.id),
   ]);
 
   const completedAttendanceCount = todayAttendanceSchedules.filter((s) => s.isRecorded).length;
@@ -27,30 +40,42 @@ export default async function GuruDashboardPage() {
 
       <div className="space-y-8">
         {/* Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
           <StatCard
             title="Kelas Diampu"
             value={data.assignedClassrooms.length}
             icon="🚪"
-            description="Penugasan rombongan belajar"
+            description="Penugasan rombel"
           />
           <StatCard
-            title="Siswa Dibimbing"
-            value={data.totalStudentsCount}
-            icon="🎒"
-            description="Total peserta didik di kelas saya"
+            title="Modul Ajar"
+            value={moduleStats.totalModules}
+            icon="📚"
+            description={`${moduleStats.publishedCount} terbit • ${moduleStats.draftCount} draft`}
+          />
+          <StatCard
+            title="RPP"
+            value={planStats.totalPlans}
+            icon="📑"
+            description={`${planStats.publishedCount} terbit • ${planStats.draftCount} draft`}
+          />
+          <StatCard
+            title="LKPD Siswa"
+            value={worksheetStats.totalWorksheets}
+            icon="📋"
+            description={`${worksheetStats.publishedCount} terbit • ${worksheetStats.draftCount} draft`}
           />
           <StatCard
             title="Presensi Hari Ini"
             value={`${completedAttendanceCount}/${todayAttendanceSchedules.length}`}
             icon="📝"
-            description="Sesi kelas yang telah diabsen"
+            description="Sesi diabsen"
           />
           <StatCard
             title="Asesmen Aktif"
             value={gradeStats.activeAssessments}
             icon="📈"
-            description={`${gradeStats.totalGradesRecorded} nilai tercatat`}
+            description={`${gradeStats.totalGradesRecorded} nilai`}
           />
         </div>
 

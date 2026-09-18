@@ -30,9 +30,9 @@ Berdasarkan `package.json` aktual:
 | **06** | **Jadwal Pelajaran** | **COMPLETED** |
 | **07** | **Absensi Siswa** | **COMPLETED** |
 | **08** | **Penilaian & Nilai** | **COMPLETED** |
-| 09 | Modul Ajar | **NOT STARTED** |
-| 10 | RPP | PLANNED |
-| 11 | LKPD | PLANNED |
+| **09** | **Modul Ajar** | **COMPLETED** |
+| **10** | **RPP** | **COMPLETED** |
+| **11** | **LKPD** | **COMPLETED** |
 | 12 | Jadwal Piket + AI | PLANNED |
 | 13 | Bank Soal | PLANNED |
 | 14 | AI Assistant Gemini | PLANNED |
@@ -104,6 +104,54 @@ Berdasarkan `package.json` aktual:
   - `app/guru/nilai/[assessmentId]/rekap/page.tsx`: Rekapitulasi statistik satu asesmen (Rata-rata, Tertinggi, Terendah, Persentase).
   - `app/guru/nilai/siswa/page.tsx`: Akumulasi capaian nilai siswa binaan.
 - **Halaman Admin**: `app/admin/nilai/page.tsx` (Tab: Rekap Nilai Per Kelas, Rekap Nilai Per Siswa, Daftar Komponen Penilaian Guru).
+
+### TASK 09: Modul Ajar
+- **DAL Modul Ajar**: `lib/data/teaching-modules.ts` (query filter guru, detail modul ajar dengan relasi lengkap, riwayat snapshot versi dokumen, filter monitoring admin, dan agregasi statistik modul ajar guru/admin).
+- **Struktur Dokumen JSONB**: Tipe data TypeScript komprehensif `TeachingModuleContent` menyimpan 8 bagian utama: Identitas & Info Umum (termasuk fase otomatis SD), Komponen Pembelajaran & Profil Pelajar Pancasila, Urutan Langkah Kegiatan (Pendahuluan, Inti, Penutup), Asesmen & KKTP, Diferensiasi & Tindak Lanjut (Remedial/Pengayaan), Refleksi Guru & Siswa, serta Lampiran (LKPD, Glosarium, Daftar Pustaka).
+- **Server Actions Atomik**: `app/guru/modul-ajar/actions.ts` (`createTeachingModuleAction`, `updateTeachingModuleAction`, `publishTeachingModuleAction`, `deactivateTeachingModuleAction`).
+- **Atomic Versioning & Immutability**: Pembuatan modul secara atomik mencatat snapshot `v1` di tabel `document_versions`. Setiap pembaruan (update) memicu penambahan nomor versi baru (`v2`, `v3`, dst.) tanpa mengubah snapshot versi lama.
+- **Soft Delete & Audit Logging**: Deaktivasi modul menerapkan soft delete (`deletedAt` dan status `ARCHIVED`) serta mencatat jejak audit trail pada tabel `audit_logs` (`CREATE_TEACHING_MODULE`, `UPDATE_TEACHING_MODULE`, `PUBLISH_TEACHING_MODULE`, `DEACTIVATE_TEACHING_MODULE`).
+- **Halaman Guru**:
+  - `app/guru/modul-ajar/page.tsx`: Daftar perangkat ajar guru, filter pencarian judul/topik/kelas/mapel/status/periode, kartu statistik kuantitatif.
+  - `app/guru/modul-ajar/new/page.tsx`: Form pembuatan Modul Ajar baru.
+  - `app/guru/modul-ajar/[id]/page.tsx`: Form telaah & edit Modul Ajar dengan tab navigasi interaktif dan riwayat snapshot versi.
+  - `app/guru/modul-ajar/[id]/preview/page.tsx`: Tampilan dokumen resmi siap cetak (*print-ready*) dengan layout media print yang bersih dari elemen navigasi/tombol.
+- **Halaman Admin**:
+  - `app/admin/modul-ajar/page.tsx`: Monitoring & supervisi seluruh perangkat modul ajar guru dalam batas tenant sekolah.
+  - `app/admin/modul-ajar/[id]/page.tsx`: Detail telaah dokumen dan inspeksi snapshot versi historis.
+- **Dashboard & Navigasi**: Menu navigasi `AppLayout.tsx` dan kartu ringkasan dashboard guru/admin diperbarui secara proporsional.
+
+### TASK 10: RPP (Rencana Pelaksanaan Pembelajaran)
+- **DAL RPP**: `lib/data/lesson-plans.ts` (query filter guru, detail RPP lengkap dengan relasi, riwayat snapshot versi dokumen, filter monitoring admin, dan agregasi statistik RPP guru/admin).
+- **Struktur Dokumen JSONB**: Tipe data TypeScript `LessonPlanContent` memuat 8 bagian: Identitas Program & Metode Pembelajaran (Model, Metode, Pendekatan Saintifik/TPACK), Capaian & Tujuan Pembelajaran (CP/TP + Profil Pancasila), Pemahaman Bermakna & Pertanyaan Pemantik, Media & Sumber Belajar, Skenario Rinci Kegiatan (Pendahuluan: orientasi/apersepsi/motivasi, Inti: eksplorasi/elaborasi/praktik/penerapan, Penutup: refleksi/kesimpulan/tindak lanjut beserta alokasi menit), Asesmen & KKTP, Diferensiasi & Remedial/Pengayaan, Refleksi Guru & Siswa, serta Lampiran (LKPD, Bacaan, Glosarium, Pustaka).
+- **Server Actions Atomik**: `app/guru/rpp/actions.ts` (`createLessonPlanAction`, `updateLessonPlanAction`, `publishLessonPlanAction`, `deactivateLessonPlanAction`).
+- **Atomic Versioning & Immutability**: Pembuatan RPP secara atomik mencatat snapshot `v1` di tabel `document_versions` (`documentType = "LESSON_PLAN"`). Setiap update RPP menaikkan nomor versi (`v2`, `v3`, dst.) dan menyimpannya secara atomik tanpa mengubah snapshot historis.
+- **Soft Delete & Audit Trail**: Deaktivasi RPP menerapkan soft delete (`deletedAt` dan status `ARCHIVED`) serta mencatat jejak audit pada `audit_logs` (`CREATE_LESSON_PLAN`, `UPDATE_LESSON_PLAN`, `PUBLISH_LESSON_PLAN`, `DEACTIVATE_LESSON_PLAN`).
+- **Halaman Guru**:
+  - `app/guru/rpp/page.tsx`: Daftar RPP guru, filter pencarian judul/topik/kelas/mapel/status/periode, kartu statistik kuantitatif.
+  - `app/guru/rpp/new/page.tsx`: Form pembuatan RPP baru.
+  - `app/guru/rpp/[id]/page.tsx`: Form telaah & edit RPP dengan tab navigasi interaktif dan riwayat snapshot versi.
+  - `app/guru/rpp/[id]/preview/page.tsx`: Preview dokumen resmi RPP siap cetak (*print-ready*) dengan layout media print yang rapi.
+- **Halaman Admin**:
+  - `app/admin/rpp/page.tsx`: Monitoring & supervisi seluruh dokumen RPP guru dalam batas tenant sekolah.
+  - `app/admin/rpp/[id]/page.tsx`: Detail supervisi RPP dan inspeksi riwayat versi admin.
+- **Dashboard & Navigasi**: Menu navigasi `AppLayout.tsx` dan kartu ringkasan dashboard guru/admin diperbarui secara proporsional.
+
+### TASK 11: LKPD (Lembar Kerja Peserta Didik)
+- **DAL LKPD**: `lib/data/worksheets.ts` (query filter guru, detail LKPD dengan relasi lengkap, riwayat snapshot versi dokumen, filter monitoring admin, dan agregasi statistik LKPD guru/admin).
+- **Struktur Dokumen JSONB**: Tipe data TypeScript `WorksheetContent` memuat: Identitas Lembar Kerja (Fase A/B/C otomatis), Petunjuk Umum & Tujuan Kegiatan, Rangkuman Materi Singkat, Daftar Aktivitas Dinamis (Diskusi, Observasi, Eksperimen, Praktik, dsb.), Daftar Butir Soal Interaktif (Isian Singkat, Pilihan Ganda, Uraian, dsb.), Kriteria Penilaian & Rubrik Guru, Refleksi Siswa & Guru, serta Lampiran Pendukung.
+- **Server Actions Atomik**: `app/guru/lkpd/actions.ts` (`createWorksheetAction`, `updateWorksheetAction`, `publishWorksheetAction`, `deactivateWorksheetAction`).
+- **Atomic Versioning & Immutability**: Pembuatan LKPD secara atomik mencatat snapshot `v1` di tabel `document_versions` (`documentType = "WORKSHEET"`). Setiap update menaikkan nomor versi (`v2`, `v3`, dst.) dan menyimpannya secara atomik ke tabel `document_versions`. Snapshot versi terdahulu bersifat **immutable** (tidak ditimpa).
+- **Soft Delete & Audit Trail**: Deaktivasi LKPD menerapkan soft delete (`deletedAt` dan status `ARCHIVED`) serta mencatat jejak audit pada `audit_logs` (`CREATE_WORKSHEET`, `UPDATE_WORKSHEET`, `PUBLISH_WORKSHEET`, `DEACTIVATE_WORKSHEET`).
+- **Halaman Guru**:
+  - `app/guru/lkpd/page.tsx`: Daftar LKPD guru, filter pencarian judul/topik/kelas/mapel/status/periode, kartu statistik kuantitatif.
+  - `app/guru/lkpd/new/page.tsx`: Form pembuatan LKPD baru dengan builder aktivitas & soal fleksibel.
+  - `app/guru/lkpd/[id]/page.tsx`: Form telaah & edit LKPD dengan tab navigasi interaktif dan riwayat snapshot versi.
+  - `app/guru/lkpd/[id]/preview/page.tsx`: Preview dokumen resmi LKPD siap cetak (*print-ready*) dengan kop sekolah, kotak identitas nama siswa, lembar kerja, dan rubrik penilaian yang bersih dari elemen tombol navigasi saat diprint.
+- **Halaman Admin**:
+  - `app/admin/lkpd/page.tsx`: Monitoring & supervisi seluruh dokumen LKPD guru dalam batas tenant sekolah.
+  - `app/admin/lkpd/[id]/page.tsx`: Detail supervisi LKPD dan inspeksi riwayat versi admin.
+- **Dashboard & Navigasi**: Menu navigasi `AppLayout.tsx` dan kartu ringkasan dashboard guru/admin diperbarui secara proporsional.
 
 ---
 
@@ -208,16 +256,14 @@ Total **25 Tabel** terdaftar di `db/schema.ts`:
 
 ## 8. Next Task
 
-### **NEXT TASK = TASK 09 — MODUL AJAR**
+### **NEXT TASK = TASK 12 — JADWAL PIKET + AI**
 **Status**: `NOT STARTED`
 
-Sebelum memulai coding pada **TASK 09**, wajib:
+Sebelum memulai coding pada **TASK 12**, wajib:
 1. Membaca `AGENTS.md` dan aturan terbarunya.
-2. Membaca struktur tabel `teaching_modules` dan `document_versions` di `db/schema.ts`.
-3. Memeriksa relasi `teaching_modules` terhadap `schools`, `teachers`, `classrooms`, `subjects`, `academic_years`, dan `semesters`.
-4. Memeriksa integrasi Gemini API di `lib/ai/gemini.ts` untuk pembuatan draf modul ajar berbasis structured output Zod schema.
-5. Memeriksa workflow dokumen pembelajaran: **Generate → Preview → Edit → Review Guru → Simpan** (AI tidak boleh otomatis mempublikasikan final tanpa telaah guru).
-6. Menyiapkan Data Access Layer di `lib/data/teaching-modules.ts` dan Server Actions di `app/guru/modul-ajar/actions.ts`.
+2. Membaca struktur tabel `duty_schedules` dan `duty_assignments` di `db/schema.ts`.
+3. Memeriksa relasi `duty_schedules` terhadap `schools`, `classrooms`, `academic_years`, `users`, dan `students`.
+4. Menyiapkan Data Access Layer di `lib/data/duty-schedules.ts` dan Server Actions di `app/guru/piket/actions.ts` / `app/admin/piket/actions.ts`.
 
 ---
 

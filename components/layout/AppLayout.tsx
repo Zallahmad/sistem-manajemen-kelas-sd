@@ -25,6 +25,14 @@ export function AppLayout({
       items: [{ href: "/admin", label: "Dashboard", icon: "📊" }],
     },
     {
+      group: "Dokumen & Perangkat",
+      items: [
+        { href: "/admin/modul-ajar", label: "Modul Ajar", icon: "📚" },
+        { href: "/admin/rpp", label: "RPP", icon: "📑" },
+        { href: "/admin/lkpd", label: "LKPD Siswa", icon: "📋" },
+      ],
+    },
+    {
       group: "Data Pembelajaran",
       items: [
         { href: "/admin/jadwal", label: "Jadwal Pelajaran", icon: "⏰" },
@@ -51,6 +59,14 @@ export function AppLayout({
     {
       group: "Utama",
       items: [{ href: "/guru", label: "Dashboard", icon: "📊" }],
+    },
+    {
+      group: "Perangkat Ajar",
+      items: [
+        { href: "/guru/modul-ajar", label: "Modul Ajar", icon: "📚" },
+        { href: "/guru/rpp", label: "RPP", icon: "📑" },
+        { href: "/guru/lkpd", label: "LKPD Siswa", icon: "📋" },
+      ],
     },
     {
       group: "Pembelajaran",
